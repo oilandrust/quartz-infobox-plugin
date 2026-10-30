@@ -436,6 +436,27 @@ function u2(e2, t2, n2, o2, i2, u3) {
 var defaultOptions = {
   fallbackToNoteTags: true
 };
+var THEME_VARS = [
+  ["fontFamily", "--infobox-font-family"],
+  ["fontSize", "--infobox-font-size"],
+  ["titleSize", "--infobox-title-size"],
+  ["sectionSize", "--infobox-section-size"],
+  ["rowPadding", "--infobox-row-padding"],
+  ["sectionPadding", "--infobox-section-padding"],
+  ["cardBackground", "--infobox-card-background"],
+  ["sectionBackground", "--infobox-section-background"],
+  ["rowBackground", "--infobox-row-background"],
+  ["altRowBackground", "--infobox-alt-row-background"],
+  ["lineColor", "--infobox-line"]
+];
+function themeStyleFromOptions(opts) {
+  const style = {};
+  for (const [optionKey, cssVar] of THEME_VARS) {
+    const value = opts[optionKey];
+    if (typeof value === "string" && value.trim()) style[cssVar] = value.trim();
+  }
+  return Object.keys(style).length > 0 ? style : void 0;
+}
 var INLINE = /!\[\[([\s\S]+?)\]\]|\[\[([\s\S]+?)\]\]|\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*|__([^_]+)__|`([^`]+)`|\*([^*]+)\*|_([^_]+)_/g;
 function classNames(...values) {
   return values.filter(Boolean).join(" ");
@@ -635,7 +656,9 @@ var Infobox = (userOpts) => {
       notes: notesFrom(allFiles),
       assets: listContentAssets()
     };
-    return /* @__PURE__ */ u2("div", { class: classNames(displayClass, "quartz-infobox"), children: /* @__PURE__ */ u2("aside", { class: "infobox", "aria-label": box.title ? `${box.title} infobox` : "Infobox", children: [
+    let rowIndex = 0;
+    const themeStyle = themeStyleFromOptions(options);
+    return /* @__PURE__ */ u2("div", { class: classNames(displayClass, "quartz-infobox"), style: themeStyle, children: /* @__PURE__ */ u2("aside", { class: "infobox", "aria-label": box.title ? `${box.title} infobox` : "Infobox", children: [
       box.supertitle && /* @__PURE__ */ u2("div", { class: "infobox-supertitle", children: /* @__PURE__ */ u2(Inline, { text: box.supertitle, ctx }) }),
       box.title && /* @__PURE__ */ u2("div", { class: "infobox-title", children: /* @__PURE__ */ u2(Inline, { text: box.title, ctx }) }),
       box.subtitle && /* @__PURE__ */ u2("div", { class: "infobox-subtitle", children: /* @__PURE__ */ u2(Inline, { text: box.subtitle, ctx }) }),
@@ -644,12 +667,24 @@ var Infobox = (userOpts) => {
         "#",
         tag
       ] }, tag)) }),
-      box.fields.map(
-        (field, index) => field.kind === "section" ? /* @__PURE__ */ u2("div", { class: "infobox-section", children: /* @__PURE__ */ u2(Inline, { text: field.label, ctx }) }, `section-${index}`) : /* @__PURE__ */ u2("div", { class: "infobox-row", children: [
-          /* @__PURE__ */ u2("span", { class: "infobox-label", children: /* @__PURE__ */ u2(Inline, { text: field.label, ctx }) }),
-          /* @__PURE__ */ u2("div", { class: "infobox-value", children: /* @__PURE__ */ u2(FieldValue, { value: field.value, ctx }) })
-        ] }, `row-${field.label}-${index}`)
-      )
+      box.fields.map((field, index) => {
+        if (field.kind === "section") {
+          return /* @__PURE__ */ u2("div", { class: "infobox-section", children: /* @__PURE__ */ u2(Inline, { text: field.label, ctx }) }, `section-${index}`);
+        }
+        const isAlt = rowIndex % 2 === 1;
+        rowIndex += 1;
+        return /* @__PURE__ */ u2(
+          "div",
+          {
+            class: classNames("infobox-row", isAlt && "is-alt"),
+            children: [
+              /* @__PURE__ */ u2("span", { class: "infobox-label", children: /* @__PURE__ */ u2(Inline, { text: field.label, ctx }) }),
+              /* @__PURE__ */ u2("div", { class: "infobox-value", children: /* @__PURE__ */ u2(FieldValue, { value: field.value, ctx }) })
+            ]
+          },
+          `row-${field.label}-${index}`
+        );
+      })
     ] }) });
   };
   Component.css = infoboxCss;
@@ -661,8 +696,8 @@ var infoboxCss = `
   --infobox-line: color-mix(in srgb, var(--dark) 18%, transparent);
   width: 100%;
   max-width: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  font-size: 13px;
+  font-family: var(--infobox-font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif);
+  font-size: var(--infobox-font-size, 13px);
   line-height: 1.4;
   color: var(--darkgray);
 }
@@ -674,7 +709,7 @@ var infoboxCss = `
 }
 
 .quartz-infobox .infobox {
-  background: color-mix(in srgb, var(--dark) 5%, var(--light));
+  background: var(--infobox-card-background, color-mix(in srgb, var(--dark) 5%, var(--light)));
   border: 1px solid var(--lightgray);
   border-radius: 10px;
   overflow: auto;
@@ -709,7 +744,7 @@ var infoboxCss = `
 
 .quartz-infobox .infobox-title {
   padding: 0.5rem 0.75rem;
-  font-size: 1.15rem;
+  font-size: var(--infobox-title-size, 1.15rem);
   font-weight: 700;
   color: var(--dark);
   line-height: 1.25;
@@ -816,13 +851,13 @@ var infoboxCss = `
 
 .quartz-infobox .infobox-section {
   text-align: center;
-  padding: 5px 12px;
-  font-size: 0.72em;
+  padding: var(--infobox-section-padding, 5px 12px);
+  font-size: var(--infobox-section-size, 0.72em);
   font-weight: 600;
   color: var(--darkgray);
   letter-spacing: 0.07em;
   text-transform: uppercase;
-  background: color-mix(in srgb, var(--dark) 10%, var(--light));
+  background: var(--infobox-section-background, color-mix(in srgb, var(--dark) 10%, var(--light)));
   border-bottom: 1px solid var(--infobox-line) !important;
 }
 
@@ -830,8 +865,13 @@ var infoboxCss = `
   display: flex;
   gap: 8px;
   align-items: flex-start;
-  padding: 6px 12px;
+  padding: var(--infobox-row-padding, 6px 12px);
+  background: var(--infobox-row-background, transparent);
   border-bottom: 1px solid var(--infobox-line) !important;
+}
+
+.quartz-infobox .infobox-row.is-alt {
+  background: var(--infobox-alt-row-background, var(--infobox-row-background, transparent));
 }
 
 .quartz-infobox .infobox-label {
@@ -912,6 +952,6 @@ var infoboxCss = `
 `;
 var Infobox_default = Infobox;
 
-export { Infobox_default as Infobox };
+export { Infobox_default as Infobox, themeStyleFromOptions };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

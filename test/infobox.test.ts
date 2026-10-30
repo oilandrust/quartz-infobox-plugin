@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest"
+import { themeStyleFromOptions } from "../src/components/Infobox"
 import { matchAsset } from "../src/lib/assets"
 import { resolveRelative, resolveWikilink } from "../src/lib/links"
 import { extractListItems, normalizeTags, readInfobox } from "../src/lib/text"
@@ -79,6 +80,41 @@ describe("tags and infobox", () => {
       { kind: "section", label: "Personal" },
       { kind: "row", label: "Born", value: "March 14, 1879" },
     ])
+  })
+})
+
+describe("theme options", () => {
+  it("maps set options to CSS variables and skips blanks", () => {
+    expect(themeStyleFromOptions({})).toBeUndefined()
+    expect(
+      themeStyleFromOptions({
+        fontFamily: "var(--bodyFont)",
+        fontSize: "12px",
+        titleSize: "1rem",
+        sectionSize: "0.7em",
+        rowPadding: "5px 10px",
+        sectionPadding: "4px 10px",
+        cardBackground: "var(--light)",
+        sectionBackground: "var(--lightgray)",
+        rowBackground: "transparent",
+        altRowBackground: "color-mix(in srgb, var(--dark) 4%, var(--light))",
+        lineColor: "var(--lightgray)",
+        fallbackToNoteTags: true,
+      }),
+    ).toEqual({
+      "--infobox-font-family": "var(--bodyFont)",
+      "--infobox-font-size": "12px",
+      "--infobox-title-size": "1rem",
+      "--infobox-section-size": "0.7em",
+      "--infobox-row-padding": "5px 10px",
+      "--infobox-section-padding": "4px 10px",
+      "--infobox-card-background": "var(--light)",
+      "--infobox-section-background": "var(--lightgray)",
+      "--infobox-row-background": "transparent",
+      "--infobox-alt-row-background": "color-mix(in srgb, var(--dark) 4%, var(--light))",
+      "--infobox-line": "var(--lightgray)",
+    })
+    expect(themeStyleFromOptions({ fontSize: "  " })).toBeUndefined()
   })
 })
 

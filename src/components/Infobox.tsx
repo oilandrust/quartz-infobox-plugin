@@ -13,10 +13,56 @@ import {
 export interface InfoboxOptions {
   /** When `infobox.tags` is omitted, show the note's own frontmatter tags. */
   fallbackToNoteTags?: boolean
+  /** CSS `font-family` for the card. Example: `var(--bodyFont)`. */
+  fontFamily?: string
+  /** CSS `font-size` for the card. Example: `12px`. */
+  fontSize?: string
+  /** CSS `font-size` for the title. Example: `1rem`. */
+  titleSize?: string
+  /** CSS `font-size` for section bars. Example: `0.7em`. */
+  sectionSize?: string
+  /** CSS `padding` for data rows. Example: `5px 10px`. */
+  rowPadding?: string
+  /** CSS `padding` for section bars. Example: `4px 10px`. */
+  sectionPadding?: string
+  /** CSS background for the card shell. Example: `var(--light)`. */
+  cardBackground?: string
+  /** CSS background for section bars. Example: `var(--lightgray)`. */
+  sectionBackground?: string
+  /** CSS background for data rows. Example: `transparent`. */
+  rowBackground?: string
+  /** CSS background for alternating data rows. */
+  altRowBackground?: string
+  /** CSS color for separators between rows and sections. */
+  lineColor?: string
 }
 
-const defaultOptions: Required<InfoboxOptions> = {
+const defaultOptions: Required<Pick<InfoboxOptions, "fallbackToNoteTags">> = {
   fallbackToNoteTags: true,
+}
+
+const THEME_VARS: Array<[keyof InfoboxOptions, string]> = [
+  ["fontFamily", "--infobox-font-family"],
+  ["fontSize", "--infobox-font-size"],
+  ["titleSize", "--infobox-title-size"],
+  ["sectionSize", "--infobox-section-size"],
+  ["rowPadding", "--infobox-row-padding"],
+  ["sectionPadding", "--infobox-section-padding"],
+  ["cardBackground", "--infobox-card-background"],
+  ["sectionBackground", "--infobox-section-background"],
+  ["rowBackground", "--infobox-row-background"],
+  ["altRowBackground", "--infobox-alt-row-background"],
+  ["lineColor", "--infobox-line"],
+]
+
+/** Build inline CSS variables from plugin options. Exported for tests. */
+export function themeStyleFromOptions(opts: InfoboxOptions): Record<string, string> | undefined {
+  const style: Record<string, string> = {}
+  for (const [optionKey, cssVar] of THEME_VARS) {
+    const value = opts[optionKey]
+    if (typeof value === "string" && value.trim()) style[cssVar] = value.trim()
+  }
+  return Object.keys(style).length > 0 ? style : undefined
 }
 
 interface LinkContext {
@@ -302,8 +348,11 @@ const Infobox: QuartzComponentConstructor<InfoboxOptions> = (userOpts) => {
       assets: listContentAssets(),
     }
 
+    let rowIndex = 0
+    const themeStyle = themeStyleFromOptions(options)
+
     return (
-      <div class={classNames(displayClass, "quartz-infobox")}>
+      <div class={classNames(displayClass, "quartz-infobox")} style={themeStyle}>
         <aside class="infobox" aria-label={box.title ? `${box.title} infobox` : "Infobox"}>
           {box.supertitle && (
             <div class="infobox-supertitle">
@@ -330,13 +379,21 @@ const Infobox: QuartzComponentConstructor<InfoboxOptions> = (userOpts) => {
               ))}
             </div>
           )}
-          {box.fields.map((field, index) =>
-            field.kind === "section" ? (
-              <div key={`section-${index}`} class="infobox-section">
-                <Inline text={field.label} ctx={ctx} />
-              </div>
-            ) : (
-              <div key={`row-${field.label}-${index}`} class="infobox-row">
+          {box.fields.map((field, index) => {
+            if (field.kind === "section") {
+              return (
+                <div key={`section-${index}`} class="infobox-section">
+                  <Inline text={field.label} ctx={ctx} />
+                </div>
+              )
+            }
+            const isAlt = rowIndex % 2 === 1
+            rowIndex += 1
+            return (
+              <div
+                key={`row-${field.label}-${index}`}
+                class={classNames("infobox-row", isAlt && "is-alt")}
+              >
                 <span class="infobox-label">
                   <Inline text={field.label} ctx={ctx} />
                 </span>
@@ -344,8 +401,8 @@ const Infobox: QuartzComponentConstructor<InfoboxOptions> = (userOpts) => {
                   <FieldValue value={field.value} ctx={ctx} />
                 </div>
               </div>
-            ),
-          )}
+            )
+          })}
         </aside>
       </div>
     )
@@ -361,8 +418,8 @@ const infoboxCss = `
   --infobox-line: color-mix(in srgb, var(--dark) 18%, transparent);
   width: 100%;
   max-width: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  font-size: 13px;
+  font-family: var(--infobox-font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif);
+  font-size: var(--infobox-font-size, 13px);
   line-height: 1.4;
   color: var(--darkgray);
 }
@@ -374,7 +431,7 @@ const infoboxCss = `
 }
 
 .quartz-infobox .infobox {
-  background: color-mix(in srgb, var(--dark) 5%, var(--light));
+  background: var(--infobox-card-background, color-mix(in srgb, var(--dark) 5%, var(--light)));
   border: 1px solid var(--lightgray);
   border-radius: 10px;
   overflow: auto;
@@ -409,7 +466,7 @@ const infoboxCss = `
 
 .quartz-infobox .infobox-title {
   padding: 0.5rem 0.75rem;
-  font-size: 1.15rem;
+  font-size: var(--infobox-title-size, 1.15rem);
   font-weight: 700;
   color: var(--dark);
   line-height: 1.25;
@@ -516,13 +573,13 @@ const infoboxCss = `
 
 .quartz-infobox .infobox-section {
   text-align: center;
-  padding: 5px 12px;
-  font-size: 0.72em;
+  padding: var(--infobox-section-padding, 5px 12px);
+  font-size: var(--infobox-section-size, 0.72em);
   font-weight: 600;
   color: var(--darkgray);
   letter-spacing: 0.07em;
   text-transform: uppercase;
-  background: color-mix(in srgb, var(--dark) 10%, var(--light));
+  background: var(--infobox-section-background, color-mix(in srgb, var(--dark) 10%, var(--light)));
   border-bottom: 1px solid var(--infobox-line) !important;
 }
 
@@ -530,8 +587,13 @@ const infoboxCss = `
   display: flex;
   gap: 8px;
   align-items: flex-start;
-  padding: 6px 12px;
+  padding: var(--infobox-row-padding, 6px 12px);
+  background: var(--infobox-row-background, transparent);
   border-bottom: 1px solid var(--infobox-line) !important;
+}
+
+.quartz-infobox .infobox-row.is-alt {
+  background: var(--infobox-alt-row-background, var(--infobox-row-background, transparent));
 }
 
 .quartz-infobox .infobox-label {

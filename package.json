@@ -1,6 +1,6 @@
 {
   "name": "quartz-infobox",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Quartz component that renders an Obsidian-compatible Wikipedia-style infobox from frontmatter.",
   "type": "module",
   "license": "MIT",
@@ -57,7 +57,7 @@
     "name": "infobox",
     "displayName": "Infobox",
     "category": "component",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "quartzVersion": ">=5.0.0",
     "dependencies": [],
     "defaultOrder": 50,
