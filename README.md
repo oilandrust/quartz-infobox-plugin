@@ -4,6 +4,8 @@ A [Quartz 5](https://quartz.jzhao.xyz/) component that renders a Wikipedia-style
 
 The card sits at the top of Quartz's right sidebar. Colors use Quartz theme tokens, so the card follows light and dark mode.
 
+![Infobox on a Quartz page](docs/infobox.png)
+
 ## Frontmatter
 
 ```yaml
