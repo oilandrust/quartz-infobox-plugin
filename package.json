@@ -1,0 +1,76 @@
+{
+  "name": "quartz-infobox",
+  "version": "0.1.0",
+  "description": "Quartz component that renders an Obsidian-compatible Wikipedia-style infobox from frontmatter.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Olivier Rouiller",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oilandrust/quartz-infobox-plugin.git"
+  },
+  "homepage": "https://github.com/oilandrust/quartz-infobox-plugin#readme",
+  "bugs": {
+    "url": "https://github.com/oilandrust/quartz-infobox-plugin/issues"
+  },
+  "keywords": ["quartz", "quartz-plugin", "infobox", "obsidian"],
+  "files": ["dist", "README.md", "LICENSE"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./components": {
+      "types": "./dist/components/index.d.ts",
+      "import": "./dist/components/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "preact": "^10.0.0"
+  },
+  "dependencies": {
+    "@quartz-community/types": "^1.0.0",
+    "@quartz-community/utils": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "preact": "^10.28.2",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.9"
+  },
+  "engines": {
+    "node": ">=22",
+    "npm": ">=10.9.2"
+  },
+  "quartz": {
+    "name": "infobox",
+    "displayName": "Infobox",
+    "category": "component",
+    "version": "0.1.0",
+    "quartzVersion": ">=5.0.0",
+    "dependencies": [],
+    "defaultOrder": 50,
+    "defaultEnabled": true,
+    "defaultOptions": {
+      "fallbackToNoteTags": true
+    },
+    "components": {
+      "Infobox": {
+        "displayName": "Infobox",
+        "defaultPosition": "right",
+        "defaultPriority": 5
+      }
+    }
+  }
+}
